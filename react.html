@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>WebSocket test</title>
+		<script src="https://unpkg.com/react@17/umd/react.development.js" crossorigin></script>
+		<script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js" crossorigin></script>
+		<script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+		<style type="text/css">
+			table {
+				border-collapse: collapse;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="app">
+		</div>
+		<script type="text/babel">
+			class Table extends React.Component {
+				constructor(props) {
+					super(props);
+					this.state = {
+						table: []
+					};
+
+					this.limit = 20;
+
+					this.socket = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@trade');
+
+					this.socket.onopen = function () {
+						console.log('Connection established.');
+					};
+
+					this.socket.onclose = function (event) {
+						if (event.wasClean) {
+							console.log('Connection closed.');
+						} else {
+							console.log('Connection lost.');
+						}
+						console.log('Code: ' + event.code + ' reason: ' + event.reason);
+					};
+					const self = this;
+					this.socket.onmessage = function (event) {
+						const data = JSON.parse(event.data);
+						if (self.state.table.length >= self.limit) {
+							self.state.table.pop();
+						}
+
+						self.state.table.unshift({
+							id: data.t,
+							time: new Date(data.E).toUTCString(),
+							price: data.p,
+							quantity: data.q,
+							type: data.m ? 'MM' : 'Not MM'
+						});
+						self.setState(self.state);
+					};
+
+					this.socket.onerror = function (error) {
+						console.log('Error: ' + error.message);
+					};
+				}
+
+				renderTableData() {
+					return this.state.table.map((item, index) => {
+						return (
+							<tr key={item.id}>
+								<td>{item.id}</td>
+								<td>{item.time}</td>
+								<td>{item.price}</td>
+								<td>{item.quantity}</td>
+								<td>{item.type}</td>
+							</tr>
+						);
+					});
+				}
+
+				render() {
+					return (
+						<div>
+							<table border="1">
+								<thead>
+									<tr>
+										<td>Trade ID</td>
+										<td>Trade time</td>
+										<td>Price</td>
+										<td>Quantity</td>
+										<td>Who</td>
+									</tr>
+								</thead>
+								<tbody>{this.renderTableData()}</tbody>
+							</table>
+						</div>
+					);
+				}
+			}
+
+			ReactDOM.render(<Table />, document.getElementById('app'));
+		</script>
+	</body>
+</html>
