@@ -21,3 +21,9 @@ Change variables `limit` and `socket` at lines 1 and 3 in `app.js`.
 ##### For React version
 
 Change `this.limit` and `this.socket` at lines 26 and 28 in `react.html`.
+
+##### Minified version
+
+Just as funny experiment, i reduced the code size (both HTML, CSS and JS in one file) to 497 bytes. Same code, `minified.html`. 
+
+Possibly the smallest trading view terminal. 
